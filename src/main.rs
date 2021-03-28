@@ -64,9 +64,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .build_windowed(window_builder, &event_loop)?
             .init_gfx::<Srgba8, Depth>();
 
-    let font = ab_glyph::FontArc::try_from_slice(include_bytes!(
-        "/Users/brian/repos/brian/garbage-term/DejaVuSansMono.ttf"
-    ))?;
+    let font = ab_glyph::FontArc::try_from_slice(include_bytes!("../DejaVuSansMono.ttf"))?;
     let mut glyph_brush = gfx_glyph::GlyphBrushBuilder::using_font(font)
         .initial_cache_size((1024, 1024))
         .build(factory.clone());
