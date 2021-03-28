@@ -1,11 +1,3 @@
-//! An example of paragraph rendering
-//! Controls
-//!
-//! * Resize window to adjust layout
-//! * Scroll to modify font size
-//! * Type to add/remove text
-//! * Ctrl-Scroll to zoom in/out using a transform, this is cheap but notice how ab_glyph can't
-//!   render at full quality without the correct pixel information.
 use cgmath::{Matrix4, Rad, Transform, Vector3};
 use gfx::{
     format::{Depth, Srgba8},
@@ -75,8 +67,6 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // let mut running = true;
     let font_size: f32 = 18.0;
-    let zoom: f32 = 1.0;
-    let angle = 0.0;
     let mut loop_helper = spin_sleep::LoopHelper::builder().build_with_target_rate(250.0);
 
     let mut modifiers = ModifiersState::default();
@@ -147,15 +137,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 // Rotation
                 let offset =
                     Matrix4::from_translation(Vector3::new(-width / 2.0, -height / 2.0, 0.0));
-                let rotation = offset.inverse_transform().unwrap()
-                    * Matrix4::from_angle_z(Rad(angle))
-                    * offset;
+                let rotation =
+                    offset.inverse_transform().unwrap() * Matrix4::from_angle_z(Rad(0.0)) * offset;
 
                 // Default projection
                 let projection: Matrix4<f32> = gfx_glyph::default_transform(&main_color).into();
 
                 // Here an example transform is used as a cheap zoom out (controlled with ctrl-scroll)
-                let zoom = Matrix4::from_scale(zoom);
+                let zoom = Matrix4::from_scale(1.0);
 
                 // Combined transform
                 let transform = zoom * projection * rotation;
