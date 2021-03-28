@@ -27,8 +27,6 @@ use std::{
     io::{self, Write},
 };
 
-const MAX_FONT_SIZE: f32 = 2000.0;
-
 fn main() -> Result<(), Box<dyn Error>> {
     if env::var("RUST_LOG").is_err() {
         env::set_var("RUST_LOG", "gfx_glyph=warn");
@@ -55,8 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let event_loop = glutin::event_loop::EventLoop::new();
-    let title = "gfx_glyph example - scroll to size, type to modify, ctrl-scroll \
-                 to gpu zoom, ctrl-shift-scroll to gpu rotate";
+    let title = "garbage-term";
     let window_builder = glutin::window::WindowBuilder::new()
         .with_title(title)
         .with_inner_size(glutin::dpi::PhysicalSize::new(1024, 576));
@@ -79,9 +76,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
 
     // let mut running = true;
-    let mut font_size: f32 = 18.0;
-    let mut zoom: f32 = 1.0;
-    let mut angle = 0.0;
+    let font_size: f32 = 18.0;
+    let zoom: f32 = 1.0;
+    let angle = 0.0;
     let mut loop_helper = spin_sleep::LoopHelper::builder().build_with_target_rate(250.0);
 
     let mut modifiers = ModifiersState::default();
@@ -121,55 +118,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                         text.push(c);
                     }
                 }
-                WindowEvent::MouseWheel {
-                    delta: MouseScrollDelta::LineDelta(_, y),
-                    ..
-                } => {
-                    let ctrl = modifiers.ctrl();
-                    let shift = modifiers.shift();
-                    if ctrl && shift {
-                        if y > 0.0 {
-                            angle += 0.02 * PI32;
-                        } else {
-                            angle -= 0.02 * PI32;
-                        }
-                        if (angle % (PI32 * 2.0)).abs() < 0.01 {
-                            angle = 0.0;
-                        }
-                        print!("\r                            \r");
-                        print!("transform-angle -> {:.2} * π", angle / PI32);
-                        let _ = io::stdout().flush();
-                    } else if ctrl && !shift {
-                        let old_zoom = zoom;
-                        // increase/decrease zoom
-                        if y > 0.0 {
-                            zoom += 0.1;
-                        } else {
-                            zoom -= 0.1;
-                        }
-                        zoom = zoom.min(1.0).max(0.1);
-                        if (zoom - old_zoom).abs() > 1e-2 {
-                            print!("\r                            \r");
-                            print!("transform-zoom -> {:.1}", zoom);
-                            let _ = io::stdout().flush();
-                        }
-                    } else {
-                        // increase/decrease font size
-                        let old_size = font_size;
-                        let mut size = font_size;
-                        if y > 0.0 {
-                            size += (size / 4.0).max(2.0)
-                        } else {
-                            size *= 4.0 / 5.0
-                        };
-                        font_size = size.max(1.0).min(MAX_FONT_SIZE);
-                        if (font_size - old_size).abs() > 1e-2 {
-                            print!("\r                            \r");
-                            print!("font-size -> {:.1}", font_size);
-                            let _ = io::stdout().flush();
-                        }
-                    }
-                }
+
                 _ => (),
             },
             Event::MainEventsCleared => {
@@ -186,7 +135,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                             .with_scale(scale)
                             .with_color([0.9, 0.3, 0.3, 1.0]),
                     )
-                    .with_bounds((width / 3.15, height));
+                    .with_bounds((width, height));
 
                 // Adds a section & layout to the queue for the next call to `use_queue().draw(..)`,
                 // this can be called multiple times for different sections that want to use the
@@ -196,37 +145,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 glyph_brush.queue(&section);
 
                 use gfx_glyph::*;
-                glyph_brush.queue(
-                    Section::default()
-                        .add_text(
-                            Text::new(&text)
-                                .with_scale(scale)
-                                .with_color([0.3, 0.9, 0.3, 1.0]),
-                        )
-                        .with_screen_position((width / 2.0, height / 2.0))
-                        .with_bounds((width / 3.15, height))
-                        .with_layout(
-                            Layout::default()
-                                .h_align(HorizontalAlign::Center)
-                                .v_align(VerticalAlign::Center),
-                        ),
-                );
-
-                glyph_brush.queue(
-                    Section::default()
-                        .add_text(
-                            Text::new(&text)
-                                .with_scale(scale)
-                                .with_color([0.3, 0.3, 0.9, 1.0]),
-                        )
-                        .with_screen_position((width, height))
-                        .with_bounds((width / 3.15, height))
-                        .with_layout(
-                            Layout::default()
-                                .h_align(HorizontalAlign::Right)
-                                .v_align(VerticalAlign::Bottom),
-                        ),
-                );
 
                 // Rotation
                 let offset =
@@ -259,12 +177,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 encoder.flush(&mut device);
                 window_ctx.swap_buffers().unwrap();
                 device.cleanup();
-
-                if let Some(rate) = loop_helper.report_rate() {
-                    window_ctx
-                        .window()
-                        .set_title(&format!("{} - {:.0} FPS", title, rate));
-                }
 
                 loop_helper.loop_sleep();
                 loop_helper.loop_start();
