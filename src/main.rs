@@ -61,7 +61,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         .initial_cache_size((1024, 1024))
         .build(factory.clone());
 
-    let mut text: String = "hello world".into();
+    let mut text: String = "hello world
+
+
+🌲
+    "
+    .into();
 
     let mut encoder: gfx::Encoder<_, _> = factory.create_command_buffer().into();
 
